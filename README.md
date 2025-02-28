@@ -13,6 +13,21 @@ This GitHub Action runs a Static Application Security Testing (SAST) using Sonar
 
 1. **Checkout into the Repo**  
    Use the checkout action to ensure your codebase is available for scanning.
+
+
+2. **Add a `sonar-project.properties` File**
+    SonarQube requires a configuration file named `sonar-project.properties` to define the scan settings.  
+    Create this file in the root directory of your repository and include the following content:
+
+    ```properties
+    sonar.projectKey=my-project-key
+    sonar.organization=my-organization
+    sonar.host.url=${{ secrets.SONAR_HOST_URL }}
+    sonar.login=${{ secrets.SONAR_TOKEN }}
+    ```
+
+    **Note:**  
+    Replace `my-project-key` and `my-organization` with your actual SonarQube project details.  
    
 2. **Add AccuKnox SAST Scan Action**  
    Use the `accuknox/accuknox-sast@v1.0.0` repository with the desired version tag, e.g., `v1.0.0`.

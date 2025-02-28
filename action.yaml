@@ -41,7 +41,7 @@ runs:
           -e REPORT_PATH=/app/data/ \
           -e SQ_PROJECTS="^${{ inputs.sonar_project_key }}$" \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:latest
+          accuknox/sastjob:1.0.2
       shell: bash
 
     - name: Run AccuKnox SAST job without Project Key
