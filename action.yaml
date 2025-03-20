@@ -52,7 +52,7 @@ runs:
           -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
           -e REPORT_PATH=/app/data/ \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:latest
+          accuknox/sastjob:1.0.2
       shell: bash
 
     - name: Upload SAST reports
