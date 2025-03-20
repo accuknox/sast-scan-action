@@ -39,7 +39,7 @@ runs:
           -e SQ_URL=${{ inputs.sonar_host_url }} \
           -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
           -e REPORT_PATH=/app/data/ \
-          -e SQ_PROJECTS="^${{ inputs.sonar_project_key }}$" \
+          -e SQ_PROJECTS="${{ inputs.sonar_project_key }}" \
           -v $PWD:/app/data/ \
           accuknox/sastjob:1.0.2
       shell: bash
