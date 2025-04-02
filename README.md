@@ -1,59 +1,63 @@
-# AccuKnox SAST GitHub Action
+# **AccuKnox SAST**
 
-## Learn More
+## 🔍 **Automate Your Security with SAST Scanning**
 
-- [About Accuknox](https://www.accuknox.com/)
+The **AccuKnox SAST GitHub Action** seamlessly integrates **Static Application Security Testing (SAST)** into your CI/CD workflows. It leverages **SonarQube** to analyze source code for security vulnerabilities and uploads findings to the **AccuKnox Console**, ensuring comprehensive security insights.
 
-**Description**  
-This GitHub Action runs a Static Application Security Testing (SAST) using SonarQube, then uploads the generated report to the AccuKnox CSPM panel. The action can be configured with specific inputs to integrate seamlessly with your DevSecOps pipeline.
+---
 
-## Usage
+## 🎯 **Key Features**
 
-### Steps for Using AccuKnox SAST Scan Action in a Workflow YAML File
+✅ **Automated Code Security Analysis** – Detects security vulnerabilities using SonarQube.  
+✅ **Seamless CI/CD Integration** – Easily integrates into GitHub workflows.  
+✅ **Centralized Security Insights** – Uploads findings to AccuKnox Console.  
+✅ **Quality Gate Enforcement** – Blocks insecure code from merging.  
+✅ **Customizable Parameters** – Configure project-specific security settings.  
 
-1. **Checkout into the Repo**  
-   Use the checkout action to ensure your codebase is available for scanning.
+---
+
+## ⚠️ **Prerequisites**
+
+Before using this GitHub Action, ensure the following:
+
+1️⃣ **An AccuKnox Account** – Required for accessing the AccuKnox Console.  
+2️⃣ **SonarQube Setup** – A working SonarQube instance for static analysis.  
+3️⃣ **GitHub Repository with Actions Enabled** – Required to run workflows.  
+4  **AccuKnox API Token & Tenant ID** – Required for authentication (see [Token Generation](https://help.accuknox.com/getting-started/how-to-create-tokens/)).  
+
+---
+
+## 📌 **Installation & Usage**
+
+### **Step 1: Configure SonarQube Properties**
+
+Create a `sonar-project.properties` file in the root directory with the following configuration:
+
+```properties
+sonar.projectKey=my-project-key
+sonar.organization=my-organization
+sonar.host.url=${{ secrets.SONAR_HOST_URL }}
+sonar.login=${{ secrets.SONAR_TOKEN }}
+```
+
+🔹 Replace `my-project-key` and `my-organization` with your actual **SonarQube** project details.
+
+### **Step 2: Retrieve AccuKnox API Credentials**
+
+To authenticate with **AccuKnox Console**, retrieve the required credentials from the **AccuKnox Console**:
 
 
-2. **Add a `sonar-project.properties` File**
-    SonarQube requires a configuration file named `sonar-project.properties` to define the scan settings.  
-    Create this file in the root directory of your repository and include the following content:
+1️⃣ **Go to Settings** → Navigate to the **Tokens** section in the **AccuKnox Console**.  
+2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token` and `tenant_id`.  
+3️⃣ **Store Securely** → Copy and securely store these credentials for workflow usage.  
 
-    ```properties
-    sonar.projectKey=my-project-key
-    sonar.organization=my-organization
-    sonar.host.url=${{ secrets.SONAR_HOST_URL }}
-    sonar.login=${{ secrets.SONAR_TOKEN }}
-    ```
+### **Step 3: Implement the Workflow YAML**
 
-    **Note:**  
-    Replace `my-project-key` and `my-organization` with your actual SonarQube project details.  
-   
-2. **Add AccuKnox SAST Scan Action**  
-   Use the `accuknox/accuknox-sast@v1.0.0` repository with the desired version tag, e.g., `v1.0.0`.
-
-3. **Token Generation from AccuKnox SaaS and Viewing Tenant ID**  
-   To obtain the `accuknox_token` and `tenant_id` values needed to authenticate with AccuKnox:
-   
-   - **Navigate to Tokens**  
-     Go to the **Settings** section in the AccuKnox SaaS sidebar.
-
-     ![1](https://github.com/udit-uniyal/container-scan-action/assets/115368361/8f4e188b-d9f3-4404-83af-134d5dc1417a)
-   
-   - **Create Token**  
-     In the "Tokens" section, click on **Create Token**. This action will display your `tenant_id` and allow you to generate an access token.
-
-     ![2](https://github.com/udit-uniyal/container-scan-action/assets/115368361/296bc611-acb8-4918-9d6b-3a8ec7733377)
-   
-   - **Generate the Token**  
-     After clicking **Generate**, copy the `accuknox_token` to use in the workflow.
-
-   ![3](https://github.com/udit-uniyal/container-scan-action/assets/115368361/16032af0-bcac-4787-8f2a-a3fa0edc6ec6)
-
-### Example Workflow File
+Create a workflow file `.github/workflows/accuknox-sast.yml` and add the following configuration:
 
 ```yaml
-name: AccuKnox SAST Workflow
+name: AccuKnox SAST Scan
+
 on:
   push:
     branches:
@@ -63,10 +67,10 @@ jobs:
   sast-scan:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Run AccuKnox SAST
+      - name: Run AccuKnox SAST Scan
         uses: accuknox/sast-scan-action@v1.0.0
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
@@ -76,29 +80,72 @@ jobs:
           accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
           label: "my-sast-scan"
           sonar_project_key: "my-project-key"
+
 ```
 
-## Input Values
+---
 
-| Input Value        | Description                                                | Optional/Required | Default Value |
-|--------------------|------------------------------------------------------------|--------------------|---------------|
-| `sonar_token`      | Personal access token for authenticating with SonarQube.   | Required          | None          |
-| `sonar_host_url`   | URL of the SonarQube server to run the SAST.               | Required          | None          |
-| `accuknox_endpoint`| AccuKnox API endpoint URL to upload the scan results.      | Required          | None          |
-| `tenant_id`        | Unique ID of the tenant for AccuKnox CSPM panel.           | Required          | None          |
-| `accuknox_token`   | Token for authenticating with AccuKnox API.                | Required          | None          |
-| `label`            | Label in AccuKnox SaaS for tagging scan results.           | Required          | None          |
-| `sonar_project_key`| Project key in SonarQube for identifying the project.      | Optional          | None          |
+## ⚙️ **Configuration Options (Inputs)**
 
-## How it Works
+| **Parameter**        | **Description**                                      | **Required** | **Default Value** |
+|----------------------|------------------------------------------------------|--------------|-------------------|
+| `sonar_token`       | SonarQube authentication token.                      | ✅ Yes       | None              |
+| `sonar_host_url`    | SonarQube server URL.                                | ✅ Yes       | None              |
+| `accuknox_endpoint` | AccuKnox API endpoint for uploading results.         | ✅ Yes       | None              |
+| `tenant_id`         | Unique ID of the AccuKnox Console.               | ✅ Yes       | None              |
+| `accuknox_token`    | API token for AccuKnox authentication.               | ✅ Yes       | None              |
+| `label`             | Tagging label for scan results in AccuKnox Console.          | ✅ Yes       | None              |
+| `sonar_project_key` | SonarQube project key for tracking the scan.         | ✅ Yes       | None              |
 
-- **SonarQube SAST**: The action runs a SAST scan on the specified project in SonarQube, using the provided credentials and project key.
-- **AccuKnox Report Generation**: The action uses AccuKnox's Docker container to generate a SAST report.
-- **Report Upload**: The generated report is uploaded to the AccuKnox CSPM panel for centralized monitoring and insights.
-- **Quality Gate Check**: Verifies if the project meets the set quality standards on SonarQube.
+---
 
-## Notes
+## 🔍 **How It Works?**
 
-- Ensure all necessary secrets (`SONAR_TOKEN`, `SONAR_HOST_URL`, `ACCUKNOX_ENDPOINT`, `TENANT_ID`, and `ACCUKNOX_TOKEN`) are securely stored in your repository's settings.
-- AccuKnox panel provides a centralized view of all SAST results, enabling detailed security monitoring and analytics.
-  
+### **Step 1: Code Analysis**
+- SonarQube scans your repository’s source code for vulnerabilities.
+
+### **Step 2: Report Processing**
+- The AccuKnox SAST GitHub Action formats the scan results for better security insights.
+git@github.com:udit-uniyal/sast-scan-action.git
+### **Step 3: Findings Upload**
+- The scan results are automatically sent to **AccuKnox Console** for centralized security tracking.
+
+### **Step 4: Quality Gate Enforcement**
+- If security issues exceed the defined threshold, the pipeline fails, preventing insecure code from merging.
+
+---
+
+## 🛠️ **Troubleshooting & Best Practices**
+
+### ❌ **Pipeline Failing Due to Vulnerabilities?**
+- Adjust the **quality gate settings** to allow lower severity issues.  
+- Use **SonarQube’s exclusion rules** to filter out non-critical findings.  
+
+### 🔑 **Invalid Token Error?**
+- Ensure your **API tokens are correctly set** in GitHub Secrets.  
+- **Regenerate** the token from the AccuKnox Console if needed.  
+
+---
+
+## 🔒 **Security Best Practices**
+
+- **Regular Scans** – Automate scanning on every pull request & deployment.  
+- **Enforce Policies** – Set **quality gates** to prevent high-risk vulnerabilities.  
+- **Least Privilege Access** – Store secrets securely in GitHub Secrets.  
+
+---
+
+## 📖 **Support & Documentation**
+
+📚 **Read More:** [AccuKnox Docs](https://help.accuknox.com/)  
+📧 **Contact Support:** [support@accuknox.com](mailto:support@accuknox.com)  
+
+---
+
+## 🏆 **Conclusion**
+
+The **AccuKnox SAST GitHub Action** enables teams to **detect vulnerabilities early**, enforce security best practices, and seamlessly integrate security testing into CI/CD pipelines. 
+
+> 🔹 **Enhance Your DevSecOps Pipeline with AccuKnox SAST – Start Today!** 🔒
+
+
