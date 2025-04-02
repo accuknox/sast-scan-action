@@ -1,5 +1,5 @@
 name: AccuKnox SAST 
-description: Run SAST analysis and upload reports to AccuKnox Panel. 
+description: Run SAST analysis and upload reports to AccuKnox Console. 
 inputs:
   sonar_token:
     description: "Token for authenticating with SonarQube."
@@ -8,16 +8,16 @@ inputs:
     description: "The SonarQube host URL."
     required: true
   accuknox_endpoint:
-    description: "The URL of the CSPM panel to push the scan results to."
+    description: "The URL of the AccuKnox Console to push the scan results to."
     required: true
   tenant_id:
-    description: "The ID of the tenant associated with the CSPm dashboard."
+    description: "The ID of the tenant associated with the AccuKnox Console."
     required: true
   accuknox_token:
-    description: "The token for authenticating with AccuKnox SaaS."
+    description: "The token for authenticating with AccuKnox Console."
     required: true
   label:
-    description: "Label created in AccuKnox SaaS for associating the scan results."
+    description: "Label created in AccuKnox Console for associating the scan results."
     required: true
   sonar_project_key:
     description: "The project key in SonarQube."
@@ -41,7 +41,7 @@ runs:
           -e REPORT_PATH=/app/data/ \
           -e SQ_PROJECTS="${{ inputs.sonar_project_key }}" \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
+          accuknox/sastjob:1.0.3
       shell: bash
 
     - name: Run AccuKnox SAST job without Project Key
@@ -52,7 +52,7 @@ runs:
           -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
           -e REPORT_PATH=/app/data/ \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
+          accuknox/sastjob:1.0.3
       shell: bash
 
     - name: Upload SAST reports
