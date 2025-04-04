@@ -120,6 +120,8 @@ runs:
       REPOSITORY_COMMIT_ID="${{ inputs.commit_sha }}"
       REPOSITORY_BRANCH="${{ inputs.commit_ref }}"
       REPOSITORY_URL="${{ inputs.repository_url }}"
+      REPOSITORY_URL=$(echo "$REPOSITORY_URL" | sed 's|git://|https://|')
+
       JOB_URL="${{ inputs.job_url }}"
 
       for file in `ls -1 SQ-*.json`; do
