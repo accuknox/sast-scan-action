@@ -53,6 +53,10 @@ inputs:
     description: 'Do not return an error code if there are failed checks.'
     required: false
     default: 'false'
+  upload_artifact:
+    description: 'Upload the scan results as a GitHub artifact'
+    required: true
+    default: 'true'
 
 runs:
   using: "composite"
@@ -140,6 +144,14 @@ runs:
           --form "file=@\"$file\""
       done
     shell: bash
+
+  - name: Upload Scan Results as Artifact
+    if: inputs.upload_artifact == 'true'
+    uses: actions/upload-artifact@v4
+    with:
+      name: scan-results-${{ github.sha }}
+      path: SQ-*.json
+      if-no-files-found: ignore
 
   - name: Fail pipeline if scan fails
     shell: bash
