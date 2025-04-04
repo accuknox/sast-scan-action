@@ -1,6 +1,36 @@
 name: AccuKnox SAST 
 description: Run SAST analysis and upload reports to AccuKnox Panel. 
 inputs:
+  repository_url:
+    description: 'Repository URL'
+    required: false
+    default: '${{ github.repositoryUrl }}'
+  commit_sha:
+    description: 'Commit SHA'
+    required: false
+    default: '${{ github.sha }}'
+  commit_ref:
+    description: 'Commit Reference'
+    required: false
+    default: '${{ github.ref_name }}'
+  pipeline_id:
+    description: 'Github Run ID'
+    required: false
+    default: '${{ github.run_id }}'
+  job_url:
+    description: 'Github Job URL'
+    required: false
+    default: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+  skip_sonar_scan:
+    description: 'Whether to skip the SonarQube scan.'
+    required: false
+    default: 'false'
+  sonar_project_key:
+    description: 'The SonarQube project key.'
+    required: true
+  sonar_organization_id:
+    description: 'Organization ID for SonarQube (cloud only).'
+    required: false
   sonar_token:
     description: "Token for authenticating with SonarQube."
     required: true
@@ -19,60 +49,135 @@ inputs:
   label:
     description: "Label created in AccuKnox SaaS for associating the scan results."
     required: true
-  sonar_project_key:
-    description: "The project key in SonarQube."
+  input_soft_fail:
+    description: 'Do not return an error code if there are failed checks.'
     required: false
+    default: 'false'
+  upload_artifact:
+    description: 'Upload the scan results as a GitHub artifact'
+    required: true
+    default: 'true'
 
 runs:
   using: "composite"
   steps:
-    - name: SonarQube Scan
-      uses: sonarsource/sonarqube-scan-action@master
-      env:
-        SONAR_TOKEN: ${{ inputs.sonar_token }}
-        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
+  - name: Run SonarQube Scan
+    shell: bash
+    run: |
+      set +e  # Allow script to continue even if a command fails
+      SQ_EXIT_CODE=0
 
-    - name: Run AccuKnox SAST job with Project Key
-      if: ${{ inputs.sonar_project_key }}
-      run: |
+      if [ "${{ inputs.skip_sonar_scan }}" != "true" ]; then
+        echo "Running SonarQube Scan..."
+
+        ORG_OPTION=""
+        if [ -n "${{ inputs.sonar_organization_id }}" ] && [ -n "$(echo "${{ inputs.sonar_organization_id }}" | tr -d ' ')" ]; then
+          ORG_OPTION="-Dsonar.organization=${{ inputs.sonar_organization_id }}"
+        fi
+
+        echo "docker run --rm \
+          -e SONAR_HOST_URL=${{ inputs.sonar_host_url }} \
+          -e SONAR_TOKEN=${{ inputs.sonar_token }} \
+          -e SONAR_SCANNER_OPTS=\"-Dsonar.projectKey=${{ inputs.sonar_project_key }} $ORG_OPTION -Dsonar.qualitygate.wait=true\" \
+          -v \"$(pwd):/usr/src/\" \
+          sonarsource/sonar-scanner-cli"
+
         docker run --rm \
-          -e SQ_URL=${{ inputs.sonar_host_url }} \
-          -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
-          -e REPORT_PATH=/app/data/ \
-          -e SQ_PROJECTS="${{ inputs.sonar_project_key }}" \
-          -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
-      shell: bash
+          -e SONAR_HOST_URL="${{ inputs.sonar_host_url }}" \
+          -e SONAR_TOKEN="${{ inputs.sonar_token }}" \
+          -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ inputs.sonar_project_key }} $ORG_OPTION -Dsonar.qualitygate.wait=true" \
+          -v "$(pwd):/usr/src/" \
+          sonarsource/sonar-scanner-cli
 
-    - name: Run AccuKnox SAST job without Project Key
-      if: ${{ !inputs.sonar_project_key }}
-      run: |
-        docker run --rm \
-          -e SQ_URL=${{ inputs.sonar_host_url }} \
-          -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
-          -e REPORT_PATH=/app/data/ \
-          -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
-      shell: bash
+        SQ_EXIT_CODE=$?
+        echo "SonarQube scan completed with exit code: $SQ_EXIT_CODE"
+      else
+        echo "SonarQube scan is skipped."
+      fi
+      echo "SQ_EXIT_CODE=$SQ_EXIT_CODE" >> $GITHUB_ENV
 
-    - name: Upload SAST reports
-      run: |
-        cd ${GITHUB_WORKSPACE}
-        for file in `ls -1 SQ-*.json`; do
-          curl --location --request POST "https://${{ inputs.accuknox_endpoint }}/api/v1/artifact/?tenant_id=${{ inputs.tenant_id }}&data_type=SQ&label_id=${{ inputs.label }}&save_to_s3=true" \
-            --header "Tenant-Id: ${{ inputs.tenant_id }}" \
-            --header "Authorization: Bearer ${{ inputs.accuknox_token }}" \
-            --form "file=@\"$file\""
-        done
-      shell: bash
+  - name: Run AccuKnox SAST job with Project Key
+    run: |
+      set +e  # Allow script to continue even if a command fails
+      AK_EXIT_CODE=0
 
-    - name: SonarQube Quality Gate check
-      id: sonarqube-quality-gate-check
-      uses: sonarsource/sonarqube-quality-gate-action@master
-      env:
-        SONAR_TOKEN: ${{ inputs.sonar_token }}
-        SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
-        
+      ORG_OPTION=""
+      if [ -n "${{ inputs.sonar_organization_id }}" ] && [ -n "$(echo "${{ inputs.sonar_organization_id }}" | tr -d ' ')" ]; then
+        ORG_OPTION="-e SQ_ORG=${{ inputs.sonar_organization_id }}"
+      fi
+      SONAR_PROJECT_KEY=${{ inputs.sonar_project_key }}
+      SONAR_HOST_URL=${{ inputs.sonar_host_url }}
+      SONAR_TOKEN=${{ inputs.sonar_token }}
+
+      echo docker run --rm $ORG_OPTION -e SQ_PROJECTS="${SONAR_PROJECT_KEY}" -e SQ_URL=${SONAR_HOST_URL} -e SQ_AUTH_TOKEN=${SONAR_TOKEN} -e REPORT_PATH=/app/data/ -v $PWD:/app/data/ accuknox/sastjob:1.0.3
+      docker run --rm $ORG_OPTION -e SQ_PROJECTS="${SONAR_PROJECT_KEY}" -e SQ_URL=${SONAR_HOST_URL} -e SQ_AUTH_TOKEN=${SONAR_TOKEN} -e REPORT_PATH=/app/data/ -v $PWD:/app/data/ accuknox/sastjob:1.0.3
+
+      AK_EXIT_CODE=$?
+      echo "AccuKnox Job completed with exit code: $AK_EXIT_CODE"
+      echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
+    shell: bash
+
+  - name: Upload SAST reports
+    run: |
+      cd ${GITHUB_WORKSPACE}
+      
+      REPOSITORY_COMMIT_ID="${{ inputs.commit_sha }}"
+      REPOSITORY_BRANCH="${{ inputs.commit_ref }}"
+      REPOSITORY_URL="${{ inputs.repository_url }}"
+      REPOSITORY_URL=$(echo "$REPOSITORY_URL" | sed 's|git://|https://|')
+
+      JOB_URL="${{ inputs.job_url }}"
+
+      for file in `ls -1 SQ-*.json`; do
+        jq --arg branch "$REPOSITORY_BRANCH" --arg commit_id "$REPOSITORY_COMMIT_ID" --arg repo_url "$REPOSITORY_URL" \
+        --arg build_url "$JOB_URL" \
+        '.repo_details = { 
+            "repository_url": $repo_url, 
+            "commit": $commit_id, 
+            "branch": $branch, 
+            "pipeline_url": $build_url 
+        }' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
+        curl --location --request POST "https://${{ inputs.accuknox_endpoint }}/api/v1/artifact/?tenant_id=${{ inputs.tenant_id }}&data_type=SQ&label_id=${{ inputs.label }}&save_to_s3=true" \
+          --header "Tenant-Id: ${{ inputs.tenant_id }}" \
+          --header "Authorization: Bearer ${{ inputs.accuknox_token }}" \
+          --form "file=@\"$file\""
+      done
+    shell: bash
+
+  - name: Upload Scan Results as Artifact
+    if: inputs.upload_artifact == 'true'
+    uses: actions/upload-artifact@v4
+    with:
+      name: scan-results-${{ github.sha }}
+      path: SQ-*.json
+      if-no-files-found: ignore
+
+  - name: Fail pipeline if scan fails
+    shell: bash
+    run: |
+      FINAL_EXIT_CODE=0
+
+      if [ "$SQ_EXIT_CODE" -ne 0 ] || [ "$AK_EXIT_CODE" -ne 0 ]; then
+        FINAL_EXIT_CODE=$SQ_EXIT_CODE
+        if [ "$SQ_EXIT_CODE" -eq 0 ]; then
+          FINAL_EXIT_CODE=$AK_EXIT_CODE
+        fi
+      fi
+
+      echo "FINAL_EXIT_CODE=$FINAL_EXIT_CODE"
+
+      if [ "$FINAL_EXIT_CODE" -ne 0 ]; then
+        if [ "${{ inputs.input_soft_fail }}" = "true" ]; then
+          echo "Scan failed, but soft fail is enabled. Continuing..."
+        else
+          echo "Scan failed and soft fail is disabled. Exiting with failure."
+          exit 1
+        fi
+      else
+        echo "Scan completed successfully."
+      fi
+      
 branding:
   icon: "shield"
   color: "purple"
