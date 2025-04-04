@@ -1,6 +1,26 @@
 name: AccuKnox SAST 
 description: Run SAST analysis and upload reports to AccuKnox Panel. 
 inputs:
+  repository_url:
+    description: 'Repository URL'
+    required: false
+    default: '${{ github.repositoryUrl }}'
+  commit_sha:
+    description: 'Commit SHA'
+    required: false
+    default: '${{ github.sha }}'
+  commit_ref:
+    description: 'Commit Reference'
+    required: false
+    default: '${{ github.ref_name }}'
+  pipeline_id:
+    description: 'Github Run ID'
+    required: true
+    default: '${{ github.run_id }}'
+  job_url:
+    description: 'Github Job URL'
+    required: true
+    default: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
   sonar_token:
     description: "Token for authenticating with SonarQube."
     required: true
@@ -41,7 +61,7 @@ runs:
           -e REPORT_PATH=/app/data/ \
           -e SQ_PROJECTS="${{ inputs.sonar_project_key }}" \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
+          accuknox/sastjob:1.0.3
       shell: bash
 
     - name: Run AccuKnox SAST job without Project Key
@@ -52,13 +72,28 @@ runs:
           -e SQ_AUTH_TOKEN=${{ inputs.sonar_token }} \
           -e REPORT_PATH=/app/data/ \
           -v $PWD:/app/data/ \
-          accuknox/sastjob:1.0.2
+          accuknox/sastjob:1.0.3
       shell: bash
 
     - name: Upload SAST reports
       run: |
         cd ${GITHUB_WORKSPACE}
+        
+        REPOSITORY_COMMIT_ID="${{ inputs.commit_sha }}"
+        REPOSITORY_BRANCH="${{ inputs.commit_ref }}"
+        REPOSITORY_URL="${{ inputs.repository_url }}"
+        JOB_URL="${{ inputs.job_url }}"
+
         for file in `ls -1 SQ-*.json`; do
+          jq --arg branch "$REPOSITORY_BRANCH" --arg commit_id "$REPOSITORY_COMMIT_ID" --arg repo_url "$REPOSITORY_URL" \
+          --arg build_url "$JOB_URL" \
+          '.repo_details = { 
+              "repository_url": $repo_url, 
+              "commit": $commit_id, 
+              "branch": $branch, 
+              "pipeline_url": $build_url 
+          }' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
+
           curl --location --request POST "https://${{ inputs.accuknox_endpoint }}/api/v1/artifact/?tenant_id=${{ inputs.tenant_id }}&data_type=SQ&label_id=${{ inputs.label }}&save_to_s3=true" \
             --header "Tenant-Id: ${{ inputs.tenant_id }}" \
             --header "Authorization: Bearer ${{ inputs.accuknox_token }}" \
