@@ -14,23 +14,8 @@ This GitHub Action runs a Static Application Security Testing (SAST) using Sonar
 1. **Checkout into the Repo**  
    Use the checkout action to ensure your codebase is available for scanning.
 
-
-2. **Add a `sonar-project.properties` File**
-    SonarQube requires a configuration file named `sonar-project.properties` to define the scan settings.  
-    Create this file in the root directory of your repository and include the following content:
-
-    ```properties
-    sonar.projectKey=my-project-key
-    sonar.organization=my-organization
-    sonar.host.url=${{ secrets.SONAR_HOST_URL }}
-    sonar.login=${{ secrets.SONAR_TOKEN }}
-    ```
-
-    **Note:**  
-    Replace `my-project-key` and `my-organization` with your actual SonarQube project details.  
-   
 2. **Add AccuKnox SAST Scan Action**  
-   Use the `accuknox/accuknox-sast@v1.0.0` repository with the desired version tag, e.g., `v1.0.0`.
+   Use the `accuknox/accuknox-sast@v1.0.1` repository with the desired version tag, e.g., `v1.0.1`.
 
 3. **Token Generation from AccuKnox SaaS and Viewing Tenant ID**  
    To obtain the `accuknox_token` and `tenant_id` values needed to authenticate with AccuKnox:
@@ -71,11 +56,13 @@ jobs:
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
-          accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
-          tenant_id: ${{ secrets.TENANT_ID }}
-          accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
-          label: "my-sast-scan"
           sonar_project_key: "my-project-key"
+          accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
+          accuknox_token: ${{ secrets.ACCUKNOX_DEV_TOKEN }}
+          tenant_id: TENANT_ID
+          label: "my-sast-scan"
+          input_soft_fail: false
+          skip_sonar_scan: false
 ```
 
 ## Input Values
@@ -88,7 +75,10 @@ jobs:
 | `tenant_id`        | Unique ID of the tenant for AccuKnox CSPM panel.           | Required          | None          |
 | `accuknox_token`   | Token for authenticating with AccuKnox API.                | Required          | None          |
 | `label`            | Label in AccuKnox SaaS for tagging scan results.           | Required          | None          |
-| `sonar_project_key`| Project key in SonarQube for identifying the project.      | Optional          | None          |
+| `sonar_project_key`| Project key in SonarQube for identifying the project.      | Required          | None          |
+| `sonar_organization_id`| Organization ID for SonarQube (For cloud user only).       | Optional          | None          |
+| `skip_sonar_scan`  | Skip SonarQube scan, for advanced users                    | Optional          | false          |
+| `input_soft_fail`  | Do not return an error code if there are failed checks.    | Optional          | false          |
 
 ## How it Works
 

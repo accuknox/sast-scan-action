@@ -51,7 +51,7 @@ inputs:
     required: true
   input_soft_fail:
     description: 'Do not return an error code if there are failed checks.'
-    required: true
+    required: false
     default: 'false'
 
 runs:
