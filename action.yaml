@@ -15,11 +15,11 @@ inputs:
     default: '${{ github.ref_name }}'
   pipeline_id:
     description: 'Github Run ID'
-    required: true
+    required: false
     default: '${{ github.run_id }}'
   job_url:
     description: 'Github Job URL'
-    required: true
+    required: false
     default: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
   skip_sonar_scan:
     description: 'Whether to skip the SonarQube scan.'
