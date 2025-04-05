@@ -95,19 +95,19 @@ jobs:
 
 ### **Step 2: Report Processing**
 - The AccuKnox SAST GitHub Action formats the scan results for better security insights.
-git@github.com:udit-uniyal/sast-scan-action.git
+
 ### **Step 3: Findings Upload**
 - The scan results are automatically sent to **AccuKnox Console** for centralized security tracking.
 
 ### **Step 4: Quality Gate Enforcement**
-- If security issues exceed the defined threshold, the pipeline fails, preventing insecure code from merging.
+- The pipeline fails if security issues exceed the defined threshold, preventing insecure code from merging.
 
 ---
 
 ## 🛠️ **Troubleshooting & Best Practices**
 
 ### ❌ **Pipeline Failing Due to Vulnerabilities?**
-- Adjust the **quality gate settings** to allow lower severity issues.  
+- Adjust the **quality gate settings** to allow lower-severity issues.  
 - Use **SonarQube’s exclusion rules** to filter out non-critical findings.  
 
 ### 🔑 **Invalid Token Error?**
