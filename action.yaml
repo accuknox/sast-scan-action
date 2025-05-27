@@ -138,10 +138,16 @@ runs:
             "pipeline_url": $build_url 
         }' "$file" > "$file.tmp" && mv "$file.tmp" "$file"
 
-        curl --location --request POST "https://${{ inputs.accuknox_endpoint }}/api/v1/artifact/?tenant_id=${{ inputs.tenant_id }}&data_type=SQ&label_id=${{ inputs.label }}&save_to_s3=true" \
+        RESPONSE=$(curl --location --request POST "https://${{ inputs.accuknox_endpoint }}/api/v1/artifact/?tenant_id=${{ inputs.tenant_id }}&data_type=SQ&label_id=${{ inputs.label }}&save_to_s3=true" \
           --header "Tenant-Id: ${{ inputs.tenant_id }}" \
           --header "Authorization: Bearer ${{ inputs.accuknox_token }}" \
-          --form "file=@\"$file\""
+          --form "file=@\"$file\"")
+
+          echo "Response: $RESPONSE"
+          if [[ "$RESPONSE" != *"File received successfully"* ]]; then
+            echo "Error: Failed to push report to AccuKnox control panel"
+            exit 1
+          fi
       done
     shell: bash
 
