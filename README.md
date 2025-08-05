@@ -56,10 +56,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Run AccuKnox SAST
-        uses: accuknox/sast-scan-action@v1.0.0
+        uses: accuknox/sast-scan-action@v1.0.1
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
