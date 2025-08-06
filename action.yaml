@@ -1,4 +1,4 @@
-name: AccuKnox SAST Dev
+name: AccuKnox SAST
 description: Run SAST analysis and upload reports to AccuKnox Panel. 
 inputs:
   repository_url:

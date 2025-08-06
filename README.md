@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run AccuKnox SAST
-        uses: accuknox/sast-scan-action@v1.0.1
+        uses: accuknox/sast-scan-action@v1.0.2
         with:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
