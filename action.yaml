@@ -80,7 +80,7 @@ runs:
       ACCUKNOX_LABEL: ${{ inputs.label }}
       INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
     run: |
-      curl -L -o accuknox-aspm-scanner \
+      curl -sSL -o accuknox-aspm-scanner \
         https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.8.13/accuknox-aspm-scanner_linux_x86_64
       chmod +x accuknox-aspm-scanner
       mv accuknox-aspm-scanner /usr/local/bin/
