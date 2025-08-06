@@ -75,10 +75,9 @@ runs:
       JOB_URL: ${{ inputs.job_url }}
       PIPELINE_ID: ${{ inputs.pipeline_id }}
       ACCUKNOX_ENDPOINT: ${{ inputs.accuknox_endpoint }}
-      TENANT_ID: ${{ inputs.tenant_id }}
+      ACCUKNOX_TENANT: ${{ inputs.tenant_id }}
       ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
-      LABEL: ${{ inputs.label }}
-      UPLOAD_ARTIFACT: ${{ inputs.upload_artifact }}
+      ACCUKNOX_LABEL: ${{ inputs.label }}
       INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
     run: |
       pip install --break-system-packages https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.8.14/accuknox_aspm_scanner-0.8.13-py3-none-any.whl
