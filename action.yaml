@@ -116,7 +116,7 @@ runs:
     shell: bash
     run: |
       if [ "$AK_EXIT_CODE" -ne 0 ]; then
-          echo "Scan failed and soft fail is disabled. Exiting with failure."
+          echo "Vulnerabilities detected and soft fail is disabled. Exiting with failure."
           exit 1
       else
         echo "Scan completed successfully."
