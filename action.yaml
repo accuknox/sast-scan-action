@@ -102,10 +102,16 @@ runs:
       eval accuknox-aspm-scanner $SOFT_FAIL_ARG scan sq-sast $ARGS
       AK_EXIT_CODE=$?
 
+      if ls SQ-*.json 1> /dev/null 2>&1; then
+        echo "upload_artifact=true" >> $GITHUB_OUTPUT
+      else
+        echo "upload_artifact=false" >> $GITHUB_OUTPUT
+      fi
+
       echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
 
   - name: Upload Scan Results as Artifact
-    if: inputs.upload_artifact == 'true'
+    if: inputs.upload_artifact == 'true' && steps.scan_check.outputs.upload_artifact == 'true'
     uses: actions/upload-artifact@v4
     with:
       name: scan-results-${{ github.sha }}
