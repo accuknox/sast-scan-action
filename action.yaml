@@ -79,6 +79,7 @@ runs:
       ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
       ACCUKNOX_LABEL: ${{ inputs.label }}
       INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
+    id: scan_check
     run: |
       curl -sSL -o accuknox-aspm-scanner \
         https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.9.1/accuknox-aspm-scanner_linux_x86_64
@@ -112,7 +113,6 @@ runs:
       fi
 
       echo "upload_artifact=$upload_artifact" >> $GITHUB_OUTPUT
-      echo "test, $upload_artifact"
 
       echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
 
