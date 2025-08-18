@@ -106,11 +106,12 @@ runs:
       AK_EXIT_CODE=$?
 
       if ls SQ-*.json 1> /dev/null 2>&1; then
-        echo "upload_artifact=true" >> $GITHUB_OUTPUT
+        upload_artifact=true
       else
-        echo "upload_artifact=false" >> $GITHUB_OUTPUT
+        upload_artifact=false
       fi
 
+      echo "upload_artifact=$upload_artifact" >> $GITHUB_OUTPUT
       echo "test, $upload_artifact"
 
       echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
