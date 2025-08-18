@@ -111,6 +111,8 @@ runs:
         echo "upload_artifact=false" >> $GITHUB_OUTPUT
       fi
 
+      echo "test, $upload_artifact"
+
       echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
 
   - name: Upload Scan Results as Artifact
