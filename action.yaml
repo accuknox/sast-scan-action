@@ -79,9 +79,10 @@ runs:
       ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
       ACCUKNOX_LABEL: ${{ inputs.label }}
       INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
+    id: scan_check
     run: |
       curl -sSL -o accuknox-aspm-scanner \
-        https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.8.13/accuknox-aspm-scanner_linux_x86_64
+        https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.9.1/accuknox-aspm-scanner_linux_x86_64
       chmod +x accuknox-aspm-scanner
       mv accuknox-aspm-scanner /usr/local/bin/
 
@@ -90,22 +91,33 @@ runs:
       [ "$INPUT_SOFT_FAIL" = "true" ] && SOFT_FAIL_ARG="--softfail" || SOFT_FAIL_ARG=""
       export PIPELINE_URL="$JOB_URL"
 
-      ARGS=""
-      [ "$SKIP_SONAR_SCAN" = "1" ] && ARGS="$ARGS --skip-sonar-scan"
-      [ -n "$SONAR_PROJECT_KEY" ] && ARGS="$ARGS --sonar-project-key \"$SONAR_PROJECT_KEY\""
-      [ -n "$SONAR_TOKEN" ] && ARGS="$ARGS --sonar-token \"$SONAR_TOKEN\""
-      [ -n "$SONAR_HOST_URL" ] && ARGS="$ARGS --sonar-host-url \"$SONAR_HOST_URL\""
-      [ -n "$SONAR_ORG_ID" ] && ARGS="$ARGS --sonar-org-id \"$SONAR_ORG_ID\""
-      [ -n "$PIPELINE_URL" ] && ARGS="$ARGS --pipeline-url \"$PIPELINE_URL\""
+      # Build arguments array
+      ARGS=()
+      [ "$SKIP_SONAR_SCAN" = "1" ] && ARGS+=("--skip-sonar-scan")
+      [ -n "$SONAR_PROJECT_KEY" ] && ARGS+=("-Dsonar.projectKey=$SONAR_PROJECT_KEY")
+      [ -n "$SONAR_TOKEN" ] && ARGS+=("-Dsonar.token=$SONAR_TOKEN")
+      [ -n "$SONAR_HOST_URL" ] && ARGS+=("-Dsonar.host.url=$SONAR_HOST_URL")
+      [ -n "$SONAR_ORG_ID" ] && ARGS+=("-Dsonar.organization=$SONAR_ORG_ID")
+      ARGS+=("-Dsonar.qualitygate.wait=true")
 
-      echo "Running: accuknox-aspm-scanner $SOFT_FAIL_ARG scan sq-sast $ARGS"
-      eval accuknox-aspm-scanner $SOFT_FAIL_ARG scan sq-sast $ARGS
+      CMD_STRING="${ARGS[@]}"
+
+      echo "Running: accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command \"${CMD_STRING}\" --pipeline-url \"$PIPELINE_URL\" --container-mode"
+      accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command "${CMD_STRING}" --pipeline-url "$PIPELINE_URL" --container-mode
       AK_EXIT_CODE=$?
+
+      if ls SQ-*.json 1> /dev/null 2>&1; then
+        upload_artifact=true
+      else
+        upload_artifact=false
+      fi
+
+      echo "upload_artifact=$upload_artifact" >> $GITHUB_OUTPUT
 
       echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
 
   - name: Upload Scan Results as Artifact
-    if: inputs.upload_artifact == 'true'
+    if: inputs.upload_artifact == 'true' && steps.scan_check.outputs.upload_artifact == 'true'
     uses: actions/upload-artifact@v4
     with:
       name: scan-results-${{ github.sha }}
