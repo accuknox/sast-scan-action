@@ -91,12 +91,15 @@ runs:
         INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
       run: |
         # Download and prepare scanner
-        curl -sSL -o accuknox-aspm-scanner \
-          https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner_linux_x86_64
-        chmod +x accuknox-aspm-scanner
-        sudo mv accuknox-aspm-scanner /usr/local/bin/
-
-        set +e  # Continue even if commands fail
+        - name: Run AccuKnox SAST
+          curl -L https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner -o accuknox-aspm-scanner
+          chmod +x accuknox-aspm-scanner
+          ./accuknox-aspm-scanner scan sq-sast \
+            --command "-Dsonar.projectKey=${{ github.repository }} -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true" \
+            --pipeline-url "$GITHUB_RUN_URL" \
+            --soft-fail-on sq-sast \
+            --container-mode
+              set +e  # Continue even if commands fail
 
         # Soft-fail argument
         [ "$INPUT_SOFT_FAIL" = "true" ] && SOFT_FAIL_ARG="--softfail" || SOFT_FAIL_ARG=""
