@@ -36,8 +36,10 @@ Before using this GitHub Action, ensure the following:
 
 To authenticate with **AccuKnox Console**, retrieve the required credentials from the **AccuKnox Console**:
 
-1️⃣ **Go to Settings** → Navigate to the **Tokens** section in the **AccuKnox Console**.  
-2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token` and `tenant_id`.  
+1️⃣ **Go to Settings** → Navigate to the **Tokens** section in the **AccuKnox Console**.
+
+2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token`. 
+
 3️⃣ **Store Securely** → Copy and securely store these credentials for workflow usage.  
 
 ### **Step 3: Implement the Workflow YAML**
@@ -61,15 +63,15 @@ jobs:
       - name: Run AccuKnox SAST
         uses: accuknox/sast-scan-action@v1.0.2
         with:
+          skip_sonar_scan: false
+          sonar_project_key: ${{ secrets.SONAR_PROJECT_KEY }}
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
+          sonar_organization_id: ${{ secrets.SONAR_ORG_ID }}
           accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
-          accuknox_token: ${{ secrets.ACCUKNOX_DEV_TOKEN }}
-          tenant_id: ${{ secrets.TENANT_ID }}
-          label: "my-sast-scan"
-          sonar_project_key: "my-project-key"
-          input_soft_fail: false
-          skip_sonar_scan: false
+          accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
+          accuknox_label: ${{ secrets.ACCUKNOX_LABEL }}
+          soft_fail: false
 ```
 
 ## ⚙️ **Configuration Options (Inputs)**
@@ -79,14 +81,13 @@ jobs:
 | `sonar_token`      | Personal access token for authenticating with SonarQube.   | Required          | None          |
 | `sonar_host_url`   | URL of the SonarQube server to run the SAST.               | Required          | None          |
 | `accuknox_endpoint`| AccuKnox API endpoint URL to upload the scan results.      | Required          | None          |
-| `tenant_id`        | Unique ID of the tenant for AccuKnox CSPM panel.           | Required          | None          |
 | `accuknox_token`   | Token for authenticating with AccuKnox API.                | Required          | None          |
-| `label`            | Label in AccuKnox SaaS for tagging scan results.           | Required          | None          |
+| `accuknox_label`   | Label in AccuKnox SaaS for tagging scan results.           | Required          | None          |
 | `sonar_project_key`| Project key in SonarQube for identifying the project.      | Required          | None          |
-| `sonar_organization_id`| Organization ID for SonarQube (For cloud user only).       | Optional          | None          |
+| `sonar_organization_id`| Organisation ID for SonarQube (For cloud user only).       | Optional          | None          |
 | `skip_sonar_scan`  | Skip SonarQube scan, for advanced users                    | Optional          | false          |
-| `input_soft_fail`  | Do not return an error code if there are failed checks.    | Optional          | false          |
-| `upload_artifact`  | Upload scan results as artifact	                          | Optional          | false          |
+| `soft_fail`        | Do not return an error code if there are failed checks.    | Optional          | false          |
+
 
 ## 🔍 **How It Works?**
 
