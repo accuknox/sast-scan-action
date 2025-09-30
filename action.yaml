@@ -42,7 +42,7 @@ inputs:
     required: true
   tenant_id:
     description: "The ID of the tenant associated with the CSPm dashboard."
-    required: true
+    required: false
   accuknox_token:
     description: "The token for authenticating with AccuKnox SaaS."
     required: true
@@ -75,14 +75,13 @@ runs:
       JOB_URL: ${{ inputs.job_url }}
       PIPELINE_ID: ${{ inputs.pipeline_id }}
       ACCUKNOX_ENDPOINT: ${{ inputs.accuknox_endpoint }}
-      ACCUKNOX_TENANT: ${{ inputs.tenant_id }}
       ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
       ACCUKNOX_LABEL: ${{ inputs.label }}
       INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
     id: scan_check
     run: |
       curl -sSL -o accuknox-aspm-scanner \
-        https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.9.1/accuknox-aspm-scanner_linux_x86_64
+        https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner_linux_x86_64
       chmod +x accuknox-aspm-scanner
       mv accuknox-aspm-scanner /usr/local/bin/
 
