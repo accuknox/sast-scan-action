@@ -37,7 +37,7 @@ Before using this GitHub Action, ensure the following:
 To authenticate with **AccuKnox Console**, retrieve the required credentials from the **AccuKnox Console**:
 
 1️⃣ **Go to Settings** → Navigate to the **Tokens** section in the **AccuKnox Console**.  
-2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token` and `tenant_id`.  
+2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token`. 
 3️⃣ **Store Securely** → Copy and securely store these credentials for workflow usage.  
 
 ### **Step 3: Implement the Workflow YAML**
@@ -84,7 +84,7 @@ jobs:
 | `sonar_project_key`| Project key in SonarQube for identifying the project.      | Required          | None          |
 | `sonar_organization_id`| Organisation ID for SonarQube (For cloud user only).       | Optional          | None          |
 | `skip_sonar_scan`  | Skip SonarQube scan, for advanced users                    | Optional          | false          |
-| `input_soft_fail`  | Do not return an error code if there are failed checks.    | Optional          | false          |
+| `soft_fail`        | Do not return an error code if there are failed checks.    | Optional          | false          |
 | `upload_artifact`  | Upload scan results as artifact	                          | Optional          | false          |
 
 ## 🔍 **How It Works?**
