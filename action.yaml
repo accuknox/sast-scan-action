@@ -47,7 +47,6 @@ runs:
         ACCUKNOX_ENDPOINT: ${{ inputs.ACCUKNOX_ENDPOINT }}
         ACCUKNOX_TOKEN: ${{ inputs.ACCUKNOX_TOKEN }}
         ACCUKNOX_LABEL: ${{ inputs.ACCUKNOX_LABEL }}
-        DEBUG: "TRUE"
       run: |
         SOFT_FAIL="${SOFT_FAIL//[$'\t\r\n ']}"
         SOFT_FAIL_ARG=""
