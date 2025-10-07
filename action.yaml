@@ -1,6 +1,10 @@
 name: "AccuKnox SQ-SAST Scanner"
 description: "Run SonarQube-based SAST scan and upload results to AccuKnox Panel."
 
+branding: 
+  icon: "shield" 
+  color: "purple"
+
 inputs:
   skip_sonar_scan:
     description: 'Whether to skip the SonarQube scan.'
