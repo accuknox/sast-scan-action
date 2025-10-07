@@ -1,78 +1,57 @@
-name: AccuKnox SAST
-description: Run SAST analysis and upload reports to AccuKnox Panel.
+name: "AccuKnox SQ-SAST Scanner"
+description: "Run SonarQube SAST scan and upload results to AccuKnox Panel"
 
-# Inputs for the composite action
 inputs:
   repository_url:
-    description: 'Repository URL'
+    description: "Git repository URL"
     required: false
-    default: '${{ github.repository }}'
+    default: "${{ github.repository }}"
   commit_sha:
-    description: 'Commit SHA'
+    description: "Commit SHA"
     required: false
-    default: '${{ github.sha }}'
+    default: "${{ github.sha }}"
   commit_ref:
-    description: 'Commit Reference'
+    description: "Commit Reference / Branch"
     required: false
-    default: '${{ github.ref_name || github.ref }}'
-  pipeline_id:
-    description: 'GitHub Run ID'
+    default: "${{ github.ref_name || github.ref }}"
+  pipeline_url:
+    description: "Pipeline URL for the scan"
     required: false
-    default: '${{ github.run_id }}'
-  job_url:
-    description: 'GitHub Job URL'
-    required: false
-    default: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+    default: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
   skip_sonar_scan:
-    description: 'Whether to skip the SonarQube scan.'
+    description: "Whether to skip the SonarQube scan"
     required: false
-    default: 'false'
+    default: "false"
   sonar_project_key:
-    description: 'SonarQube project key'
+    description: "SonarQube project key"
     required: true
   sonar_organization_id:
-    description: 'SonarQube organization ID (cloud only)'
+    description: "SonarQube organization ID (cloud only)"
     required: false
   sonar_token:
-    description: 'SonarQube authentication token'
+    description: "SonarQube authentication token"
     required: true
   sonar_host_url:
-    description: 'SonarQube host URL'
+    description: "SonarQube host URL"
     required: true
-  accuknox_endpoint:
-    description: 'AccuKnox CSPM panel URL'
+  ACCUKNOX_ENDPOINT:
+    description: "AccuKnox CSPM panel URL"
     required: true
-  tenant_id:
-    description: 'AccuKnox tenant ID (optional)'
+  ACCUKNOX_TOKEN:
+    description: "AccuKnox authentication token"
+    required: true
+  ACCUKNOX_LABEL:
+    description: "Label for associating scan results in AccuKnox"
+    required: true
+  soft_fail:
+    description: "Do not fail the pipeline if scan finds issues"
     required: false
-  accuknox_token:
-    description: 'AccuKnox authentication token'
-    required: true
-  label:
-    description: 'Label for associating scan results in AccuKnox'
-    required: true
-  input_soft_fail:
-    description: 'Do not fail the pipeline if scan finds issues'
-    required: false
-    default: 'false'
-  upload_artifact:
-    description: 'Upload scan results as a GitHub artifact'
-    required: false
-    default: 'true'
+    default: "false"
 
-# Declare outputs for composite action
-outputs:
-  upload_artifact:
-    description: 'Whether artifact was found'
-    value: ${{ steps.scan_check.outputs.upload_artifact }}
-
-# Action steps
 runs:
   using: "composite"
   steps:
-
-    - name: Run SAST Scan
-      id: scan_check
+    - name: Run SQ-SAST Scan
       shell: bash
       env:
         SKIP_SONAR_SCAN: ${{ inputs.skip_sonar_scan }}
@@ -83,74 +62,36 @@ runs:
         REPOSITORY_URL: ${{ inputs.repository_url }}
         COMMIT_SHA: ${{ inputs.commit_sha }}
         COMMIT_REF: ${{ inputs.commit_ref }}
-        JOB_URL: ${{ inputs.job_url }}
-        PIPELINE_ID: ${{ inputs.pipeline_id }}
-        ACCUKNOX_ENDPOINT: ${{ inputs.accuknox_endpoint }}
-        ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
-        ACCUKNOX_LABEL: ${{ inputs.label }}
-        INPUT_SOFT_FAIL: ${{ inputs.input_soft_fail }}
+        PIPELINE_URL: ${{ inputs.pipeline_url }}
+        ACCUKNOX_ENDPOINT: ${{ inputs.ACCUKNOX_ENDPOINT }}
+        ACCUKNOX_TOKEN: ${{ inputs.ACCUKNOX_TOKEN }}
+        ACCUKNOX_LABEL: ${{ inputs.ACCUKNOX_LABEL }}
+        SOFT_FAIL: ${{ inputs.soft_fail }}
       run: |
-        # Download and prepare scanner
-        - name: Run AccuKnox SAST
-          curl -L https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner -o accuknox-aspm-scanner
-          chmod +x accuknox-aspm-scanner
-          ./accuknox-aspm-scanner scan sq-sast \
-            --command "-Dsonar.projectKey=${{ github.repository }} -Dsonar.token=${{ secrets.SONAR_TOKEN }} -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.qualitygate.wait=true" \
-            --pipeline-url "$GITHUB_RUN_URL" \
-            --soft-fail-on sq-sast \
-            --container-mode
-              set +e  # Continue even if commands fail
+        set -e
 
-        # Soft-fail argument
-        [ "$INPUT_SOFT_FAIL" = "true" ] && SOFT_FAIL_ARG="--softfail" || SOFT_FAIL_ARG=""
+        echo "Downloading AccuKnox ASPM Scanner..."
+        curl -L https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner -o accuknox-aspm-scanner
+        chmod +x accuknox-aspm-scanner
 
-        # Pipeline URL
-        export PIPELINE_URL="$JOB_URL"
+        SOFT_FAIL="${SOFT_FAIL//[$'\t\r\n ']}"
+        SOFT_FAIL_ARG=""
+        if [ "$SOFT_FAIL" = "true" ]; then
+          SOFT_FAIL_ARG="--softfail"
+        fi
 
-        # Build SonarQube arguments
         ARGS=()
         [ "$SKIP_SONAR_SCAN" = "true" ] && ARGS+=("--skip-sonar-scan")
-        [ -n "$SONAR_PROJECT_KEY" ] && ARGS+=("-Dsonar.projectKey=$SONAR_PROJECT_KEY")
-        [ -n "$SONAR_TOKEN" ] && ARGS+=("-Dsonar.token=$SONAR_TOKEN")
-        [ -n "$SONAR_HOST_URL" ] && ARGS+=("-Dsonar.host.url=$SONAR_HOST_URL")
-        [ -n "$SONAR_ORG_ID" ] && ARGS+=("-Dsonar.organization=$SONAR_ORG_ID")
-        ARGS+=("-Dsonar.qualitygate.wait=true")
+        [ -n "$SONAR_PROJECT_KEY" ] && ARGS+=("--sonar-project-key $SONAR_PROJECT_KEY")
+        [ -n "$SONAR_TOKEN" ] && ARGS+=("--sonar-token $SONAR_TOKEN")
+        [ -n "$SONAR_HOST_URL" ] && ARGS+=("--sonar-host-url $SONAR_HOST_URL")
+        [ -n "$SONAR_ORG_ID" ] && ARGS+=("--sonar-org-id $SONAR_ORG_ID")
+        [ -n "$REPOSITORY_URL" ] && ARGS+=("--repo-url $REPOSITORY_URL")
+        [ -n "$COMMIT_REF" ] && ARGS+=("--branch $COMMIT_REF")
+        [ -n "$COMMIT_SHA" ] && ARGS+=("--commit-sha $COMMIT_SHA")
+        [ -n "$PIPELINE_URL" ] && ARGS+=("--pipeline-url $PIPELINE_URL")
 
-        CMD_STRING="${ARGS[@]}"
+        CMD="${ARGS[@]}"
 
-        # Run the scanner
-        echo "Running: accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command \"${CMD_STRING}\" --pipeline-url \"$PIPELINE_URL\" --container-mode"
-        accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command "${CMD_STRING}" --pipeline-url "$PIPELINE_URL" --container-mode
-        AK_EXIT_CODE=$?
-
-        # Check for results and set output
-        if ls SQ-*.json 1> /dev/null 2>&1; then
-          upload_artifact=true
-        else
-          upload_artifact=false
-        fi
-
-        echo "upload_artifact=$upload_artifact" >> $GITHUB_OUTPUT
-        echo "AK_EXIT_CODE=$AK_EXIT_CODE" >> $GITHUB_ENV
-
-    - name: Upload Scan Results as Artifact
-      if: inputs.upload_artifact == 'true' && steps.scan_check.outputs.upload_artifact == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: scan-results-${{ github.sha }}
-        path: SQ-*.json
-        if-no-files-found: ignore
-
-    - name: Fail pipeline if scan fails
-      shell: bash
-      run: |
-        if [ "$AK_EXIT_CODE" -ne 0 ]; then
-            echo "Vulnerabilities detected and soft fail is disabled. Exiting with failure."
-            exit 1
-        else
-            echo "Scan completed successfully."
-        fi
-
-branding:
-  icon: "shield"
-  color: "purple"
+        echo "Running: ./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast $CMD --accuknox-endpoint $ACCUKNOX_ENDPOINT --accuknox-token $ACCUKNOX_TOKEN --accuknox-label $ACCUKNOX_LABEL"
+        ./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast $CMD --accuknox-endpoint $ACCUKNOX_ENDPOINT --accuknox-token $ACCUKNOX_TOKEN --accuknox-label $ACCUKNOX_LABEL
