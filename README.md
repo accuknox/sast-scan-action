@@ -37,7 +37,7 @@ Before using this GitHub Action, ensure the following:
 To authenticate with **AccuKnox Console**, retrieve the required credentials from the **AccuKnox Console**:
 
 1️⃣ **Go to Settings** → Navigate to the **Tokens** section in the **AccuKnox Console**.  
-2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token`.
+2️⃣ **Create a New Token** → Click on **Create Token** to generate `accuknox_token`. 
 3️⃣ **Store Securely** → Copy and securely store these credentials for workflow usage.  
 
 ### **Step 3: Implement the Workflow YAML**
