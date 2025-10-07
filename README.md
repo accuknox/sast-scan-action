@@ -85,7 +85,7 @@ jobs:
 | `sonar_organization_id`| Organisation ID for SonarQube (For cloud user only).       | Optional          | None          |
 | `skip_sonar_scan`  | Skip SonarQube scan, for advanced users                    | Optional          | false          |
 | `soft_fail`        | Do not return an error code if there are failed checks.    | Optional          | false          |
-| `upload_artifact`  | Upload scan results as artifact	                          | Optional          | false          |
+
 
 ## 🔍 **How It Works?**
 
