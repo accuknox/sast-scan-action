@@ -64,13 +64,11 @@ runs:
         [ -n "$SONAR_ORG_ID" ] && CMD_ARGS="$CMD_ARGS -Dsonar.organization=$SONAR_ORG_ID"
         [ "$SKIP_SONAR_SCAN" = "true" ] && CMD_ARGS="--skip-sonar-scan $CMD_ARGS"
 
-        # Run the scanner
+        # Run the scanner (AccuKnox env variables now used instead of CLI args)
+        echo "./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command \"$CMD_ARGS\" --repo-url \"$GITHUB_REPOSITORY\" --branch \"${GITHUB_REF#refs/heads/}\" --commit-sha \"$GITHUB_SHA\" --pipeline-url \"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\" --container-mode"
         ./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast --command "$CMD_ARGS" \
           --repo-url "$GITHUB_REPOSITORY" \
           --branch "${GITHUB_REF#refs/heads/}" \
           --commit-sha "$GITHUB_SHA" \
           --pipeline-url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
-          --container-mode \
-          --accuknox-endpoint "$ACCUKNOX_ENDPOINT" \
-          --accuknox-token "$ACCUKNOX_TOKEN" \
-          --accuknox-label "$ACCUKNOX_LABEL"
+          --container-mode
