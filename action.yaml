@@ -26,13 +26,13 @@ inputs:
     description: 'Do not fail the pipeline if scan finds issues'
     required: false
     default: 'false'
-  ACCUKNOX_ENDPOINT:
+  accuknox_endpoint:
     description: 'AccuKnox CSPM panel endpoint URL'
     required: true
-  ACCUKNOX_TOKEN:
+  accuknox_token:
     description: 'AccuKnox authentication token'
     required: true
-  ACCUKNOX_LABEL:
+  accuknox_label:
     description: 'Label for associating scan results in AccuKnox'
     required: true
 
@@ -48,9 +48,9 @@ runs:
         SONAR_TOKEN: ${{ inputs.sonar_token }}
         SONAR_HOST_URL: ${{ inputs.sonar_host_url }}
         SOFT_FAIL: ${{ inputs.soft_fail }}
-        ACCUKNOX_ENDPOINT: ${{ inputs.ACCUKNOX_ENDPOINT }}
-        ACCUKNOX_TOKEN: ${{ inputs.ACCUKNOX_TOKEN }}
-        ACCUKNOX_LABEL: ${{ inputs.ACCUKNOX_LABEL }}
+        ACCUKNOX_ENDPOINT: ${{ inputs.accuknox_endpoint }}
+        ACCUKNOX_TOKEN: ${{ inputs.accuknox_token }}
+        ACCUKNOX_LABEL: ${{ inputs.accuknox_label }}
       run: |
         SOFT_FAIL="${SOFT_FAIL//[$'\t\r\n ']}"
         SOFT_FAIL_ARG=""
