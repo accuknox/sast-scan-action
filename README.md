@@ -68,9 +68,9 @@ jobs:
           sonar_token: ${{ secrets.SONAR_TOKEN }}
           sonar_host_url: ${{ secrets.SONAR_HOST_URL }}
           sonar_organization_id: ${{ secrets.SONAR_ORG_ID }}
-          ACCUKNOX_ENDPOINT: ${{ secrets.ACCUKNOX_ENDPOINT }}
-          ACCUKNOX_TOKEN: ${{ secrets.ACCUKNOX_TOKEN }}
-          ACCUKNOX_LABEL: ${{ secrets.ACCUKNOX_LABEL }}
+          accuknox_endpoint: ${{ secrets.ACCUKNOX_ENDPOINT }}
+          accuknox_token: ${{ secrets.ACCUKNOX_TOKEN }}
+          accuknox_label: ${{ secrets.ACCUKNOX_LABEL }}
           soft_fail: false
 ```
 
