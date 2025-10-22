@@ -1,4 +1,4 @@
-name: "AccuKnox SAST Scan"
+name: "AccuKnox SAST"
 description: "Run SonarQube-based SAST scan and upload results to AccuKnox Panel."
 
 branding:
