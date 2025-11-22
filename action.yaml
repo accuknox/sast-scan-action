@@ -53,7 +53,7 @@ runs:
         ACCUKNOX_LABEL: ${{ inputs.accuknox_label }}
 
       run: |
-        echo "🔹 Starting AccuKnox SQ-SAST Scan..."
+        echo " Starting AccuKnox SQ-SAST Scan..."
 
         # Normalise soft fail flag
         SOFT_FAIL="${SOFT_FAIL//[$'\t\r\n ']}"
@@ -63,7 +63,7 @@ runs:
         fi
 
         echo "Downloading AccuKnox ASPM Scanner..."
-        curl -L https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.4/accuknox-aspm-scanner -o accuknox-aspm-scanner
+        curl -L https://github.com/accuknox/aspm-scanner-cli/releases/download/v0.13.8/accuknox-aspm-scanner -o accuknox-aspm-scanner
         chmod +x accuknox-aspm-scanner
 
         # Build SonarQube properties (no skip flag here)
@@ -81,9 +81,13 @@ runs:
           SKIP_FLAG="--skip-sonar-scan"
         fi
 
-        echo "Executing scan with parameters:"
-        echo "SOFT_FAIL_ARG: $SOFT_FAIL_ARG"
-        echo "CMD_ARGS: $CMD_ARGS"
+        echo "./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast $SKIP_FLAG \
+                --command \"$CMD_ARGS\" \
+                --repo-url \"$GITHUB_REPOSITORY\" \
+                --branch \"${GITHUB_REF#refs/heads/}\" \
+                --commit-sha \"$GITHUB_SHA\" \
+                --pipeline-url \"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\" \
+                --container-mode"
         
         ./accuknox-aspm-scanner scan $SOFT_FAIL_ARG sq-sast $SKIP_FLAG \
           --command "$CMD_ARGS" \
