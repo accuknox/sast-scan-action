@@ -61,7 +61,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run AccuKnox SAST
-        uses: accuknox/sast-scan-action@v1.0.3
+        uses: accuknox/sast-scan-action@latest
         with:
           skip_sonar_scan: false
           sonar_project_key: ${{ secrets.SONAR_PROJECT_KEY }}
